@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <title>TweetBook</title>
+</head>
+
+<style>
+    .scrollable {
+        height: 685px;
+        overflow-y: scroll;
+    }
+
+    #bg {
+        height: 584px;
+        opacity: 0.8;
+        background: url(bg.png);
+        background-size: cover;
+    }
+</style>
+
+<!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/7.8.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/7.8.0/firebase-database.js"></script>
+
+<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+<script src="https://www.gstatic.com/firebasejs/7.8.0/firebase-analytics.js"></script>
+
+
+<script>
+    // Your web app's Firebase configuration
+    var firebaseConfig = {
+        apiKey: "AIzaSyAZRAmRIJjbblwZfM0nlo6zQQkUYxDppX4",
+        authDomain: "social-media-assignment-db.firebaseapp.com",
+        databaseURL: "https://social-media-assignment-db.firebaseio.com",
+        projectId: "social-media-assignment-db",
+        storageBucket: "social-media-assignment-db.appspot.com",
+        messagingSenderId: "645649822285",
+        appId: "1:645649822285:web:f2893082552a6a1a09a204",
+        measurementId: "G-Q09GZ6XG7Z"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    // firebase.analytics();
+
+    var database = firebase.database();
+    var ref_facebook = database.ref('socialmedia/facebook');
+    var ref_twitter = database.ref('socialmedia/twitter');
+</script>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <a class="navbar-brand ml-3" href="#">TweetBook</a>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto"></ul>
+            <form class="form-inline my-2 my-lg-0">
+                <!-- <input class="form-control mr-sm-2" type="search" placeholder="Username" aria-label="Search"> -->
+                <button class="btn btn-outline-light my-2 my-sm-0" id="logout_btn" onclick="logout()"
+                    type="submit">Logout</button>
+            </form>
+        </div>
+    </nav>
+    <div class="jumbotron jumbotron-fluid" id="jumbotron" style="height: 320px; margin-bottom: 0px">
+        <div class="container">
+            <h1 class="display-3" id="welcome">TweetBook</h1>
+            <p class="lead">Get your feeds from Twitter and Facebook in real-time with zero cost</p>
+            <hr class="my-2">
+            <!-- <p>Created and Designed by Kevin Toms</p> -->
+            <p class="lead" id="login_btn">
+                <a class="btn btn-primary btn-lg" href="Jumbo action link" role="button" data-toggle="modal"
+                    data-target="#exampleModalCenter">Login to TweetBook</a>
+
+                <!-- Modal -->
+                <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog"
+                    aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalCenterTitle">Login to TweetBook</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text" id="basic-addon1">Username</span>
+                                    </div>
+                                    <input type="text" class="form-control" id="username" placeholder="Username"
+                                        aria-label="Username" aria-describedby="basic-addon1">
+                                </div>
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text" id="basic-addon1">Password</span>
+                                    </div>
+                                    <input type="password" class="form-control" id="password" placeholder="Password"
+                                        aria-label="Password" aria-describedby="basic-addon1">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" data-dismiss="modal"
+                                    onclick="login()">Login</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </p>
+        </div>
+    </div>
+
+    <div id="bg"></div>
+
+    <div class="container-sm" id="ss_media_content" style="display: none;">
+        <div class="row">
+            <div class="col-3">
+                <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                    <a class="nav-link active" id="v-pills-home-tab" data-toggle="pill" href="#v-pills-home" role="tab"
+                        aria-controls="v-pills-home" aria-selected="true">Facebook</a>
+                    <a class="nav-link" id="v-pills-profile-tab" data-toggle="pill" href="#v-pills-profile" role="tab"
+                        aria-controls="v-pills-profile" aria-selected="false">Twitter</a>
+                </div>
+            </div>
+            <!-- <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+            </div> -->
+            <div class="col-9 scrollable">
+                <div class="tab-content" id="v-pills-tabContent">
+                    <div class="tab-pane fade" id="v-pills-profile" role="tabpanel"
+                        aria-labelledby="v-pills-profile-tab">
+                        <div class="row row-cols-1 row-cols-sm-1" id="twitter_tweets">
+                            <!-- Twitter feeds get populated here -->
+                        </div>
+                    </div>
+                    <div class="tab-pane fade show active" id="v-pills-home" role="tabpanel"
+                        aria-labelledby="v-pills-home-tab">
+                        <div class="row row-cols-1 row-cols-md-3" id="fb_feeds">
+                            <!-- Facebook feeds get populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <blockquote class="blockquote text-center fixed-bottom">
+        <!-- <p class="mb-0 ">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer posuere erat a ante.</p> -->
+        <footer class="blockquote-footer font-weight-lighter">Copyright <cite title="Source Title">@ Kevin
+                Toms</cite></footer>
+    </blockquote>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script>
+
+    function add_tweets(tweet) {
+        var data = {
+            tweet: tweet,
+            type: "message"
+        }
+        ref_twitter.push(data);
+
+        const div = document.createElement('div');
+        div.className = "card mb-3";
+        div.style = "max-height: 100px;"
+        div.innerHTML = `
+                            <div class="row no-gutters">
+                                <div class="col-md-1">
+                                    <img src="static/tw.png" style="width: 100px; height: 100px;" class="card-img" alt="">
+                                </div>
+                                <div class="col-md-11">
+                                    <div class="card-body ml-4">
+                                        <p class="card-text">`+ tweet + `</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+        document.getElementById('twitter_tweets').appendChild(div);
+    }
+
+    function add_fb_stories(feed) {
+        var data = {
+            feed: feed,
+            type: "message"
+        }
+        ref_facebook.push(data);
+
+        const div = document.createElement('div');
+        div.className = 'col mb-4';
+        div.innerHTML = `
+                        <div class="card h-100">
+                            <img src="static/fb.png" style="width: 100px; height: 100px;" class="card-img-top" alt="Image not found">
+                            <div class="card-body">
+                                <p class="card-text">`+ feed + `</p>
+                            </div>
+                        </div>
+                `;
+        document.getElementById('fb_feeds').appendChild(div);
+    }
+
+    // var ip = "http://kevintoms.pythonanywhere.com/"
+    var ip = "http://localhost/"
+
+    var twitter_url = ip + "get_tweets"
+    var facebook_url = ip + "get_fb_stories"
+    var twitter_live_url = ip + "get_live_tweets"
+
+    function get_tweets() {
+        $.ajax({
+            url: twitter_url,
+            type: 'GET',
+            contentType: 'application/json',
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+            },
+            success: function (result) {
+                console.log("Tweets")
+                console.log(result)
+                result['posts'].forEach(function (item) {
+                    if (item != null) {
+                        add_tweets(item)
+                    }
+                })
+            },
+            error: function (error) {
+                console.log("Error")
+            }
+        });
+    }
+
+    function get_live_tweets() {
+        $.ajax({
+            url: twitter_live_url,
+            type: 'GET',
+            contentType: 'application/json',
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+            },
+            success: function (result) {
+                result['posts'].forEach(function (item) {
+                    if (item != null) {
+                        console.log("Live Tweets")
+                        console.log(result)
+                        add_tweets(item)
+                    }
+                })
+            },
+            error: function (error) {
+                console.log("Error")
+            }
+        });
+    }
+
+    function get_fb_stories() {
+        $.ajax({
+            url: facebook_url,
+            type: 'GET',
+            contentType: 'application/json',
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+            },
+            success: function (result) {
+                console.log("Feeds")
+                console.log(result)
+                result['posts'].forEach(function (item) {
+                    if (item != null) {
+                        add_fb_stories(item)
+                    }
+                })
+            },
+            error: function (error) {
+                console.log("Error")
+            }
+        });
+    }
+
+</script>
+
+<script>
+    document.getElementById('logout_btn').style.display = 'none';
+
+    function login() {
+        username_dummy = "";
+        password_dummy = "";
+        // username_dummy = "kevintoms";
+        // password_dummy = "kevintoms123";
+        username = document.getElementById('username').value;
+        password = document.getElementById('password').value;
+        if (username === username_dummy && password === password_dummy) {
+            console.log("Logged in!");
+
+            get_tweets()
+            get_fb_stories()
+
+            setInterval(get_live_tweets, 3000);
+            // setInterval(get_fb_stories, 10000);
+
+            document.getElementById('bg').style.display = 'none';
+            document.getElementById('jumbotron').style.height = '180px';
+            document.getElementById('jumbotron').style.paddingTop = '30px';
+            document.getElementById('jumbotron').style.marginBottom = '30px';
+            document.getElementById('logout_btn').style.display = 'block';
+            document.getElementById('welcome').innerText = "Welcome, Kevin Toms";
+            document.getElementById('login_btn').style.display = 'none';
+            document.getElementById('ss_media_content').style.display = 'block';
+        } else {
+            console.log("Not Logged in!")
+        }
+    }
+    function logout() {
+        document.getElementById('jumbotron').style.marginBottom = 'margin-bottom: 0px'
+        document.getElementById('jumbotron').style.height = '320px'
+        document.getElementById('jumbotron').style.padding = '4rem 2rem'
+        document.getElementById('logout_btn').style.display = 'none';
+        document.getElementById('login_btn').style.display = 'block';
+        document.getElementById('welcome').innerText = "TweetBook";
+        document.getElementById('ss_media_content').style.display = 'none';
+    }
+</script>
+
+</html>
