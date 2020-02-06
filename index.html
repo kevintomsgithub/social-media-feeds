@@ -129,27 +129,61 @@
                         aria-controls="v-pills-home" aria-selected="true">Facebook</a>
                     <a class="nav-link" id="v-pills-profile-tab" data-toggle="pill" href="#v-pills-profile" role="tab"
                         aria-controls="v-pills-profile" aria-selected="false">Twitter</a>
+
+
+                    <!-- Button trigger modal -->
+                    <button type="button" id="tweet_button" class="btn btn-outline-success mt-3" data-toggle="modal"
+                        data-target="#twitterPost">Post a Tweet</button>
+
+                    <!-- Modal -->
+                    <div class="modal fade" id="twitterPost" tabindex="-1" role="dialog"
+                        aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalCenterTitle">Pen down your tweet here..</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="input-group input-group-lg">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text" id="inputGroup-sizing-lg">Tweet</span>
+                                        </div>
+                                        <input type="text" id="postTweet" class="form-control"
+                                            aria-label="Sizing example input" aria-describedby="inputGroup-sizing-lg">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-primary" onclick="post_tweet()"
+                                        data-dismiss="modal">Tweet</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
-            <!-- <div class="spinner-border text-primary" role="status">
-                <span class="sr-only">Loading...</span>
-            </div> -->
+
             <div class="col-9 scrollable">
                 <div class="tab-content" id="v-pills-tabContent">
                     <div class="tab-pane fade" id="v-pills-profile" role="tabpanel"
                         aria-labelledby="v-pills-profile-tab">
-                        <div class="row row-cols-1 row-cols-sm-1" id="twitter_tweets">
+                        <div id="twitter_tweets">
                             <!-- Twitter feeds get populated here -->
                         </div>
                     </div>
                     <div class="tab-pane fade show active" id="v-pills-home" role="tabpanel"
                         aria-labelledby="v-pills-home-tab">
-                        <div class="row row-cols-1 row-cols-md-3" id="fb_feeds">
+                        <div id="fb_feeds">
                             <!-- Facebook feeds get populated here -->
                         </div>
                     </div>
                 </div>
             </div>
+
         </div>
     </div>
 
@@ -175,49 +209,84 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script>
 
-    function add_tweets(tweet) {
-        var data = {
-            tweet: tweet,
-            type: "message"
-        }
-        ref_twitter.push(data);
+    function add_posts(post, database_ref, parent_div, fav_icon, live = false) {
+
+        database_ref.push(post);
 
         const div = document.createElement('div');
-        div.className = "card mb-3";
-        div.style = "max-height: 100px;"
-        div.innerHTML = `
-                            <div class="row no-gutters">
-                                <div class="col-md-1">
-                                    <img src="tw.png" style="width: 100px; height: 100px;" class="card-img" alt="">
-                                </div>
-                                <div class="col-md-11">
-                                    <div class="card-body ml-4">
-                                        <p class="card-text">`+ tweet + `</p>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-        document.getElementById('twitter_tweets').appendChild(div);
+        div.className = 'card mb-3';
+        media = ""
+        if (post.hasOwnProperty('video_url')) {
+            media =
+                `<video controls style="margin: auto; height: auto; width: auto;">
+         <source src="`+ post.video_url + `" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>`;
+        }
+        if (post.hasOwnProperty('image_url')) {
+            media = `<img src="` + post.image_url + `" style="width: 40%; margin: auto;" class="card-img-top" alt="...">`
+        }
+        div.innerHTML =
+            `
+            <div class="row">
+                <div class="col-sm-1">
+                    <img style="margin: 20px;" src="`+ fav_icon + `" class="card-img" alt="...">
+                </div>
+                <div class="col-sm-10">
+                    <div class="card-body">
+                        <h5 class="card-title mb-0">`+ post.username + `</h5>
+                        <p class="card-text"><small class="text-muted">`+ post.created_time + `</small></p>
+                        <p class="card-text" style="font-size: large;">`+ post.text + `</p>
+                    </div>
+                </div>
+            </div>
+            `+ media + `
+            `;
+
+        if (live) {
+            parent_div.prepend(div);
+        } else {
+            parent_div.appendChild(div);
+        }
     }
 
-    function add_fb_stories(feed) {
-        var data = {
-            feed: feed,
-            type: "message"
-        }
-        ref_facebook.push(data);
+    function AJAX_call(
+        url,
+        data = "",
+        data_population = true,
+        callBackFunction,
+        callBackParams,
+        live = false) {
 
-        const div = document.createElement('div');
-        div.className = 'col mb-4';
-        div.innerHTML = `
-                        <div class="card h-100">
-                            <img src="fb.png" style="width: 100px; height: 100px;" class="card-img-top" alt="Image not found">
-                            <div class="card-body">
-                                <p class="card-text">`+ feed + `</p>
-                            </div>
-                        </div>
-                `;
-        document.getElementById('fb_feeds').appendChild(div);
+        $.ajax({
+            url: url,
+            data: data,
+            type: 'GET',
+            contentType: 'application/json',
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+            },
+            success: function (result) {
+                console.log("URL Call : " + url)
+                console.log(result)
+                if (data_population) {
+                    result['posts'].forEach(function (item) {
+                        if (item != null) {
+                            callBackFunction(
+                                item,
+                                callBackParams['database_ref'],
+                                callBackParams['parent_div'],
+                                callBackParams['fav_icon'],
+                                live
+                            )
+                        }
+                    })
+                }
+            },
+            error: function (error) {
+                console.log("Error")
+            }
+        });
     }
 
     // var ip = "http://kevintoms.pythonanywhere.com/"
@@ -226,79 +295,42 @@
     var twitter_url = ip + "get_tweets"
     var facebook_url = ip + "get_fb_stories"
     var twitter_live_url = ip + "get_live_tweets"
+    var delete_fb_post_url = ip + "delete_fb_post"
+    var delete_tw_post_url = ip + "delete_tw_post"
+    var post_tweet_url = ip + "post_tweet"
+    var logout_clear = ip + "logout"
 
-    function get_tweets() {
-        $.ajax({
-            url: twitter_url,
-            type: 'GET',
-            contentType: 'application/json',
-            headers: {
-                'Access-Control-Allow-Origin': '*',
+
+    function delete_tw_post(postId) {
+        AJAX_call(
+            url = delete_tw_post_url,
+            data = {
+                post_id: postId,
             },
-            success: function (result) {
-                console.log("Tweets")
-                console.log(result)
-                result['posts'].forEach(function (item) {
-                    if (item != null) {
-                        add_tweets(item)
-                    }
-                })
-            },
-            error: function (error) {
-                console.log("Error")
-            }
-        });
+            data_population = false,
+            callBackFunction = null,
+            callBackParams = null,
+            live = false
+        )
     }
 
-    function get_live_tweets() {
-        $.ajax({
-            url: twitter_live_url,
-            type: 'GET',
-            contentType: 'application/json',
-            headers: {
-                'Access-Control-Allow-Origin': '*',
+    function post_tweet() {
+        var tweet_text = document.getElementById("postTweet").value;
+        document.getElementById("postTweet").value = "";
+        console.log("Tweet : " + tweet_text)
+
+        AJAX_call(
+            url = post_tweet_url,
+            data = {
+                tweet: tweet_text
             },
-            success: function (result) {
-                result['posts'].forEach(function (item) {
-                    if (item != null) {
-                        console.log("Live Tweets")
-                        console.log(result)
-                        add_tweets(item)
-                    }
-                })
-            },
-            error: function (error) {
-                console.log("Error")
-            }
-        });
+            data_population = false,
+            callBackFunction = null,
+            callBackParams = null,
+            live = false
+        )
     }
 
-    function get_fb_stories() {
-        $.ajax({
-            url: facebook_url,
-            type: 'GET',
-            contentType: 'application/json',
-            headers: {
-                'Access-Control-Allow-Origin': '*',
-            },
-            success: function (result) {
-                console.log("Feeds")
-                console.log(result)
-                result['posts'].forEach(function (item) {
-                    if (item != null) {
-                        add_fb_stories(item)
-                    }
-                })
-            },
-            error: function (error) {
-                console.log("Error")
-            }
-        });
-    }
-
-</script>
-
-<script>
     document.getElementById('logout_btn').style.display = 'none';
 
     function login() {
@@ -311,11 +343,63 @@
         if (username === username_dummy && password === password_dummy) {
             console.log("Logged in!");
 
-            get_tweets()
-            get_fb_stories()
+            AJAX_call(
+                url = twitter_url,
+                data = "",
+                data_population = true,
+                callBackFunction = add_posts,
+                callBackParams = {
+                    "database_ref": ref_twitter,
+                    "parent_div": document.getElementById('twitter_tweets'),
+                    "fav_icon": "tw.png"
+                },
+                live = false
+            )
 
-            setInterval(get_live_tweets, 3000);
-            // setInterval(get_fb_stories, 10000);
+            AJAX_call(
+                url = facebook_url,
+                data = "",
+                data_population = true,
+                callBackFunction = add_posts,
+                callBackParams = {
+                    "database_ref": ref_facebook,
+                    "parent_div": document.getElementById('fb_feeds'),
+                    "fav_icon": "fb.png"
+                },
+                live = false
+            )
+
+            setInterval(() => {
+                AJAX_call(
+                    url = facebook_url,
+                    data = "",
+                    data_population = true,
+                    callBackFunction = add_posts,
+                    callBackParams = {
+                        "database_ref": ref_facebook,
+                        "parent_div": document.getElementById('fb_feeds'),
+                        "fav_icon": "fb.png"
+                    },
+                    live = true
+                )
+            }, 10000);
+
+
+            setInterval(() => {
+                AJAX_call(
+                    url = twitter_live_url,
+                    data = "",
+                    data_population = true,
+                    callBackFunction = add_posts,
+                    callBackParams = {
+                        "database_ref": ref_twitter,
+                        "parent_div": document.getElementById('twitter_tweets'),
+                        "fav_icon": "tw.png"
+                    },
+                    live = true
+                )
+            }, 5000);
+
 
             document.getElementById('bg').style.display = 'none';
             document.getElementById('jumbotron').style.height = '180px';
@@ -337,7 +421,26 @@
         document.getElementById('login_btn').style.display = 'block';
         document.getElementById('welcome').innerText = "TweetBook";
         document.getElementById('ss_media_content').style.display = 'none';
+        // clear_data();
+        AJAX_call(
+            url = logout_clear,
+            data = null,
+            data_population = false,
+            callBackFunction = null,
+            callBackParams = null,
+            live = false
+        )
     }
+
+    // Clear all data when refreshing the page
+    AJAX_call(
+        url = logout_clear,
+        data = null,
+        data_population = false,
+        callBackFunction = null,
+        callBackParams = null,
+        live = false
+    )
 </script>
 
 </html>
