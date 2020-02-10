@@ -35,28 +35,6 @@
      https://firebase.google.com/docs/web/setup#available-libraries -->
 <script src="https://www.gstatic.com/firebasejs/7.8.0/firebase-analytics.js"></script>
 
-
-<script>
-    // Your web app's Firebase configuration
-    var firebaseConfig = {
-        apiKey: "AIzaSyAZRAmRIJjbblwZfM0nlo6zQQkUYxDppX4",
-        authDomain: "social-media-assignment-db.firebaseapp.com",
-        databaseURL: "https://social-media-assignment-db.firebaseio.com",
-        projectId: "social-media-assignment-db",
-        storageBucket: "social-media-assignment-db.appspot.com",
-        messagingSenderId: "645649822285",
-        appId: "1:645649822285:web:f2893082552a6a1a09a204",
-        measurementId: "G-Q09GZ6XG7Z"
-    };
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    // firebase.analytics();
-
-    var database = firebase.database();
-    var ref_facebook = database.ref('socialmedia/facebook');
-    var ref_twitter = database.ref('socialmedia/twitter');
-</script>
-
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <a class="navbar-brand ml-3" href="#">TweetBook</a>
@@ -292,6 +270,7 @@
     // var ip = "http://kevintoms.pythonanywhere.com/"
     var ip = "http://localhost:5000/"
 
+    var db_cred = ip + "db_cred"
     var twitter_url = ip + "get_tweets"
     var facebook_url = ip + "get_fb_stories"
     var twitter_live_url = ip + "get_live_tweets"
@@ -334,72 +313,103 @@
     document.getElementById('logout_btn').style.display = 'none';
 
     function login() {
-        // username_dummy = "";
-        // password_dummy = "";
-        username_dummy = "kevintoms";
-        password_dummy = "kevintoms123";
+
+        username_dummy = "";
+        password_dummy = "";
+        // username_dummy = "kevintoms";
+        // password_dummy = "kevintoms123";
         username = document.getElementById('username').value;
         password = document.getElementById('password').value;
         if (username === username_dummy && password === password_dummy) {
             console.log("Logged in!");
 
-            AJAX_call(
-                url = twitter_url,
-                data = "",
-                data_population = true,
-                callBackFunction = add_posts,
-                callBackParams = {
-                    "database_ref": ref_twitter,
-                    "parent_div": document.getElementById('twitter_tweets'),
-                    "fav_icon": "tw.png"
+            var firebaseConfig;
+
+            $.ajax({
+                url: db_cred,
+                data: "",
+                type: 'POST',
+                contentType: 'application/json',
+                headers: {
+                    'Access-Control-Allow-Origin': '*',
                 },
-                live = false
-            )
+                success: function (result) {
+                    console.log("URL Call : " + url)
+                    console.log(result)
 
-            AJAX_call(
-                url = facebook_url,
-                data = "",
-                data_population = true,
-                callBackFunction = add_posts,
-                callBackParams = {
-                    "database_ref": ref_facebook,
-                    "parent_div": document.getElementById('fb_feeds'),
-                    "fav_icon": "fb.png"
+                    // Your web app's Firebase configuration
+                    firebaseConfig = result
+                    console.log('Firebase Config : ' + firebaseConfig)
+
+                    // Initialize Firebase
+                    firebase.initializeApp(firebaseConfig);
+                    // firebase.analytics();
+
+                    var database = firebase.database();
+                    var ref_facebook = database.ref('socialmedia/facebook');
+                    var ref_twitter = database.ref('socialmedia/twitter');
+
+                    AJAX_call(
+                        url = twitter_url,
+                        data = "",
+                        data_population = true,
+                        callBackFunction = add_posts,
+                        callBackParams = {
+                            "database_ref": ref_twitter,
+                            "parent_div": document.getElementById('twitter_tweets'),
+                            "fav_icon": "tw.png"
+                        },
+                        live = false
+                    )
+
+                    AJAX_call(
+                        url = facebook_url,
+                        data = "",
+                        data_population = true,
+                        callBackFunction = add_posts,
+                        callBackParams = {
+                            "database_ref": ref_facebook,
+                            "parent_div": document.getElementById('fb_feeds'),
+                            "fav_icon": "fb.png"
+                        },
+                        live = false
+                    )
+
+                    // setInterval(() => {
+                    //     AJAX_call(
+                    //         url = facebook_url,
+                    //         data = "",
+                    //         data_population = true,
+                    //         callBackFunction = add_posts,
+                    //         callBackParams = {
+                    //             "database_ref": ref_facebook,
+                    //             "parent_div": document.getElementById('fb_feeds'),
+                    //             "fav_icon": "fb.png"
+                    //         },
+                    //         live = true
+                    //     )
+                    // }, 10000);
+
+
+                    // setInterval(() => {
+                    //     AJAX_call(
+                    //         url = twitter_live_url,
+                    //         data = "",
+                    //         data_population = true,
+                    //         callBackFunction = add_posts,
+                    //         callBackParams = {
+                    //             "database_ref": ref_twitter,
+                    //             "parent_div": document.getElementById('twitter_tweets'),
+                    //             "fav_icon": "tw.png"
+                    //         },
+                    //         live = true
+                    //     )
+                    // }, 5000);
                 },
-                live = false
-            )
-
-            setInterval(() => {
-                AJAX_call(
-                    url = facebook_url,
-                    data = "",
-                    data_population = true,
-                    callBackFunction = add_posts,
-                    callBackParams = {
-                        "database_ref": ref_facebook,
-                        "parent_div": document.getElementById('fb_feeds'),
-                        "fav_icon": "fb.png"
-                    },
-                    live = true
-                )
-            }, 10000);
-
-
-            setInterval(() => {
-                AJAX_call(
-                    url = twitter_live_url,
-                    data = "",
-                    data_population = true,
-                    callBackFunction = add_posts,
-                    callBackParams = {
-                        "database_ref": ref_twitter,
-                        "parent_div": document.getElementById('twitter_tweets'),
-                        "fav_icon": "tw.png"
-                    },
-                    live = true
-                )
-            }, 5000);
-
+                error: function (error) {
+                    console.log("Database connection errors!")
+                }
+            });
 
             document.getElementById('bg').style.display = 'none';
             document.getElementById('jumbotron').style.height = '180px';
